@@ -1,0 +1,42 @@
+services:
+  api:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      # Only will build development stage from our dockerfile
+      target: development
+    env_file:
+        - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+    volumes:
+      - .:/usr/src/app
+      - ./usr/src/app/node_modules
+    command: npm run start:dev
+    ports:
+      - 3000:3000
+    depends_on:
+      - redis
+      - postgres
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    volumes: 
+      - redis:/data
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports: 
+      - '5432:5432'
+    volumes:
+      - gitter-postgres:/var/lib/postgresql/data
+
+volumes:
+  gitter-postgres:
+  redis:
+    driver: local
